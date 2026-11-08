@@ -1,0 +1,77 @@
+$ pwd
+/c/Users/ADMIN/allinone/E1-1
+
+$ mkdir -p practice/docs
+
+$ cd practice && pwd
+/c/Users/ADMIN/allinone/E1-1/practice
+
+$ ls -la
+total 4
+drwxr-xr-x 1 ADMIN 197121 0 Nov  8 22:29 .
+drwxr-xr-x 1 ADMIN 197121 0 Nov  8 22:29 ..
+drwxr-xr-x 1 ADMIN 197121 0 Nov  8 22:29 docs
+
+$ touch empty.txt
+
+$ echo "hello codyssey" > note.txt
+
+$ cat note.txt
+hello codyssey
+
+$ ls -la
+total 5
+drwxr-xr-x 1 ADMIN 197121  0 Nov  8 22:29 .
+drwxr-xr-x 1 ADMIN 197121  0 Nov  8 22:29 ..
+drwxr-xr-x 1 ADMIN 197121  0 Nov  8 22:29 docs
+-rw-r--r-- 1 ADMIN 197121  0 Nov  8 22:29 empty.txt
+-rw-r--r-- 1 ADMIN 197121 15 Nov  8 22:29 note.txt
+
+$ cp note.txt docs/note_copy.txt
+
+$ mv empty.txt renamed.txt
+
+$ mv renamed.txt docs/
+
+$ ls -la docs
+total 1
+drwxr-xr-x 1 ADMIN 197121  0 Nov  8 22:29 .
+drwxr-xr-x 1 ADMIN 197121  0 Nov  8 22:29 ..
+-rw-r--r-- 1 ADMIN 197121 15 Nov  8 22:29 note_copy.txt
+-rw-r--r-- 1 ADMIN 197121  0 Nov  8 22:29 renamed.txt
+
+$ cat docs/note_copy.txt
+hello codyssey
+
+$ cd docs && pwd && cd .. && pwd
+/c/Users/ADMIN/allinone/E1-1/practice/docs
+/c/Users/ADMIN/allinone/E1-1/practice
+
+$ cd ../practice/docs && pwd && cd -
+/c/Users/ADMIN/allinone/E1-1/practice/docs
+/c/Users/ADMIN/allinone/E1-1/practice
+
+$ rm docs/renamed.txt
+
+$ rm -r docs
+
+$ ls -la
+total 5
+drwxr-xr-x 1 ADMIN 197121  0 Nov  8 22:29 .
+drwxr-xr-x 1 ADMIN 197121  0 Nov  8 22:29 ..
+-rw-r--r-- 1 ADMIN 197121 15 Nov  8 22:29 note.txt
+
+$ cd .. && rm -r practice && ls -la
+total 15
+drwxr-xr-x 1 ADMIN 197121   0 Nov  8 22:29 .
+drwxr-xr-x 1 ADMIN 197121   0 Nov  6 08:14 ..
+-rw-r--r-- 1 ADMIN 197121  33 Nov  8 22:28 .dockerignore
+-rw-r--r-- 1 ADMIN 197121  11 Nov  8 22:28 .gitignore
+drwxr-xr-x 1 ADMIN 197121   0 Nov  8 22:28 app
+drwxr-xr-x 1 ADMIN 197121   0 Nov  8 22:28 compose
+-rw-r--r-- 1 ADMIN 197121 488 Nov  8 22:28 docker-compose.yml
+-rw-r--r-- 1 ADMIN 197121 895 Nov  8 22:28 Dockerfile
+drwxr-xr-x 1 ADMIN 197121   0 Nov  8 22:28 docs
+drwxr-xr-x 1 ADMIN 197121   0 Nov  8 22:29 logs
+drwxr-xr-x 1 ADMIN 197121   0 Nov  8 22:28 nginx
+

@@ -1,0 +1,18 @@
+$ git --version
+git version 2.56.0.windows.2
+
+$ git config --global user.name
+김해순
+
+$ git config --global init.defaultBranch
+main
+
+$ git config --list --global
+user.name=김해순
+user.email=pj******@gmail.com
+init.defaultbranch=main
+core.autocrlf=true
+
+$ git branch --show-current
+main
+

@@ -1,0 +1,54 @@
+$ docker volume create e1-data
+e1-data
+
+$ docker volume ls --filter name=e1-data
+DRIVER    VOLUME NAME
+local     e1-data
+
+$ docker run -d --name e1-vol-test -v e1-data:/data ubuntu:24.04 sleep infinity
+b2937d1f40287a5e0d369da8ae5d1d0326673391f03ccbe9f9ff664b45b852b2
+
+$ docker exec e1-vol-test bash -c "echo persistent-hello > /data/hello.txt && cat /data/hello.txt"
+persistent-hello
+
+### 컨테이너 삭제
+$ docker rm -f e1-vol-test
+e1-vol-test
+
+$ docker ps -a --filter name=e1-vol
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+### 새 컨테이너에 같은 볼륨 연결
+$ docker run -d --name e1-vol-test2 -v e1-data:/data ubuntu:24.04 sleep infinity
+f9a5c1ae835c88f58d1c497834f66ccbfee811e61b89ee547e31815754580861
+
+$ docker exec e1-vol-test2 bash -c "ls -l /data && cat /data/hello.txt"
+total 4
+-rw-r--r-- 1 root root 17 Nov  8 13:31 hello.txt
+persistent-hello
+
+$ docker volume inspect e1-data
+[
+    {
+        "CreatedAt": "2026-11-08T13:31:12Z",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/e1-data/_data",
+        "Name": "e1-data",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+
+### 비교: 볼륨 없이 컨테이너 내부에만 쓴 데이터는 삭제 시 사라짐
+$ docker run -d --name e1-novol ubuntu:24.04 sleep infinity
+89c78f55e333229cfc7b1a1f3c002c5a2fd5a3f18f5ae664b3e1f5201af9addb
+
+$ docker exec e1-novol bash -c "echo temp > /tmp/x.txt && cat /tmp/x.txt"
+temp
+
+$ docker rm -f e1-novol
+
+$ docker run --rm ubuntu:24.04 cat /tmp/x.txt
+cat: /tmp/x.txt: No such file or directory
+

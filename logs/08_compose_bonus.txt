@@ -1,0 +1,69 @@
+$ docker compose up -d --build 2>&1 | grep -v "^#"
+ Image python:3.12-alpine Pulling 
+ Image python:3.12-alpine Pulled 
+ Image e1-1-web:compose Building 
+
+ Image e1-1-web:compose Built 
+ Network e1-1_default Creating 
+ Network e1-1_default Creating 
+ Network e1-1_default Created 
+ Network e1-1_default Created 
+ Container e1-1-api-1 Creating 
+ Container e1-1-api-1 Created 
+ Container e1-1-web-1 Creating 
+ Container e1-1-web-1 Created 
+ Container e1-1-api-1 Starting 
+ Container e1-1-api-1 Started 
+ Container e1-1-web-1 Starting 
+ Container e1-1-web-1 Started 
+
+$ docker compose ps
+NAME         IMAGE                COMMAND                   SERVICE   CREATED          STATUS                            PORTS
+e1-1-api-1   python:3.12-alpine   "python -u server.py"     api       10 seconds ago   Up 9 seconds                      
+e1-1-web-1   e1-1-web:compose     "/docker-entrypoint.…"   web       10 seconds ago   Up 9 seconds (health: starting)   0.0.0.0:8090->80/tcp, [::]:8090->80/tcp
+
+$ curl -s http://localhost:8090/health
+ok
+
+### 컨테이너 간 통신: web 컨테이너 안에서 서비스 이름(api)으로 접근
+$ docker compose exec web wget -qO- http://api:8000
+{"service": "api", "mode": "dev", "port": 8000}
+$ docker compose logs --tail 3 api
+api-1  | 172.18.0.3 - - [08/Nov/2026 13:34:07] "GET / HTTP/1.1" 200 -
+
+### 환경 변수로 포트/모드 변경
+$ WEB_PORT=9090 API_PORT=9000 APP_MODE=prod docker compose up -d
+ Container e1-1-api-1 Recreate 
+ Container e1-1-api-1 Recreated 
+ Container e1-1-web-1 Recreate 
+ Container e1-1-web-1 Recreated 
+ Container e1-1-api-1 Starting 
+ Container e1-1-api-1 Started 
+ Container e1-1-web-1 Starting 
+ Container e1-1-web-1 Started 
+
+$ docker compose ps
+NAME         IMAGE                COMMAND                   SERVICE   CREATED          STATUS                            PORTS
+e1-1-api-1   python:3.12-alpine   "python -u server.py"     api       12 seconds ago   Up 7 seconds                      
+e1-1-web-1   e1-1-web:compose     "/docker-entrypoint.…"   web       8 seconds ago    Up 6 seconds (health: starting)   0.0.0.0:9090->80/tcp, [::]:9090->80/tcp
+
+$ curl -s http://localhost:9090/health
+ok
+
+$ docker compose exec web wget -qO- http://api:9000
+{"service": "api", "mode": "prod", "port": 9000}
+$ docker compose down
+ Container e1-1-web-1 Stopping 
+ Container e1-1-web-1 Stopped 
+ Container e1-1-web-1 Removing 
+ Container e1-1-web-1 Removed 
+ Container e1-1-api-1 Stopping 
+ Container e1-1-api-1 Stopped 
+ Container e1-1-api-1 Removing 
+ Container e1-1-api-1 Removed 
+ Network e1-1_default Removing 
+ Network e1-1_default Removed 
+
+$ docker compose ps
+NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS
+

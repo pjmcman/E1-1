@@ -1,0 +1,15 @@
+### [A] Git Bash (Windows NTFS) 에서 시도
+$ mkdir -p perm_test && touch perm_test/secret.txt
+
+$ ls -ld perm_test perm_test/secret.txt
+drwxr-xr-x 1 ADMIN 197121 0 Nov  8 22:29 perm_test
+-rw-r--r-- 1 ADMIN 197121 0 Nov  8 22:29 perm_test/secret.txt
+
+$ chmod 600 perm_test/secret.txt && chmod 700 perm_test
+
+$ ls -ld perm_test perm_test/secret.txt
+drwxr-xr-x 1 ADMIN 197121 0 Nov  8 22:29 perm_test
+-rw-r--r-- 1 ADMIN 197121 0 Nov  8 22:29 perm_test/secret.txt
+
+$ rm -r perm_test
+

@@ -1,0 +1,21 @@
+$ cat bind-site/index.html
+<h1>Bind mount v1</h1>
+
+$ docker run -d -p 8082:80 --name e1-bind -v "$(pwd -W)/bind-site:/usr/share/nginx/html" e1-web:1.0
+89cbd25157110420f5981145f34b3def74dc49f103d03186e3af3655660d2c9d
+
+$ curl -s http://localhost:8082
+<h1>Bind mount v1</h1>
+
+### 호스트에서 파일만 수정 (컨테이너 재시작/재빌드 없음)
+$ echo '<h1>Bind mount v2 - edited on host</h1>' > bind-site/index.html
+
+$ curl -s http://localhost:8082
+<h1>Bind mount v2 - edited on host</h1>
+
+$ docker exec e1-bind cat /usr/share/nginx/html/index.html
+<h1>Bind mount v2 - edited on host</h1>
+
+$ docker inspect --format "{{range .Mounts}}{{.Type}}: {{.Source}} -> {{.Destination}}{{end}}" e1-bind
+bind: C:/Users/ADMIN/allinone/E1-1/bind-site -> /usr/share/nginx/html
+
