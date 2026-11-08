@@ -25,7 +25,7 @@
 | Docker | Docker Desktop 4.97 — Engine **29.9.2** (WSL2 backend), Compose v5.6.1 |
 | Git | **2.56.0.windows.2** |
 
-> 서울캠퍼스(macOS)는 OrbStack을 쓰지만, 이 환경은 Windows이므로 **Docker Desktop**을 사용했습니다. 둘 다 내부에서 Docker 엔진을 띄우고 `docker` CLI를 그대로 쓰므로, 아래 명령은 동일하게 재현됩니다. (Windows 고유 주의사항은 [7. 재현 시 주의사항](#7-재현-시-주의사항) 참고)
+> 서울캠퍼스(macOS)는 OrbStack을 쓰지만, 이 환경은 Windows이므로 **Docker Desktop**을 사용했습니다. 둘 다 내부에서 Docker 엔진을 띄우고 `docker` CLI를 그대로 쓰므로, 아래 명령은 동일하게 재현됩니다. (Windows 고유 주의사항은 [8. 재현 방법 / 주의사항](#8-재현-방법--주의사항) 참고)
 
 ---
 
@@ -163,6 +163,12 @@ hi
   - `700` = `rwx------` → 소유자 전용
 - 디렉토리에서의 의미: `r` = 목록 보기, `w` = 안에 파일 생성/삭제, `x` = 진입(cd)·내부 접근.
 
+**보충 증거: ubuntu 컨테이너 안에서 같은 실험 (캡처)**
+
+`file.txt`가 `644 → 600`(`-rw-r--r--` → `-rw-------`)으로, `mydir`가 `755 → 700`(`drwxr-xr-x` → `drwx------`)으로 바뀌었습니다. 컨테이너 안도 리눅스 파일시스템이라 chmod가 정상 반영됩니다.
+
+![ubuntu 컨테이너 내부 chmod 전/후](docs/screenshots/02-ubuntu-it-chmod.png)
+
 ### 5-3. Docker 설치 및 점검
 
 ```bash
@@ -216,6 +222,16 @@ hello-from-ubuntu
 PRETTY_NAME="Ubuntu 24.04.5 LTS"
 NAME="Ubuntu"
 ```
+
+**캡처: PowerShell에서 hello-world 실행**
+
+![hello-world 실행 (PowerShell)](docs/screenshots/01-hello-world-powershell.png)
+
+**캡처: `docker run -it`로 ubuntu 컨테이너에 대화형으로 들어가 명령 실행**
+
+`docker ps -a`로 이전 hello-world 컨테이너를 확인하고, `docker run -it --name mybox ubuntu`로 들어갔습니다. 프롬프트가 `root@b384bee99801:/#`(컨테이너 ID)로 바뀐 것이 내부에 진입했다는 증거입니다. 그 안에서 `mkdir`, `touch`, `ls -l`, `chmod`를 실행했습니다.
+
+![ubuntu 컨테이너 내부 진입 및 명령 실행](docs/screenshots/02-ubuntu-it-chmod.png)
 
 **exec vs attach 관찰**
 
@@ -472,8 +488,14 @@ $ docker compose down
   open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
   ```
 - **원인 가설:** CLI(클라이언트)는 설치돼 있지만, 실제 컨테이너를 실행하는 **데몬(서버)** 이 떠 있지 않다.
-- **확인:** `docker --version`은 클라이언트 버전만 출력(데몬 불필요). `wsl -l -v`에서 `docker-desktop` 배포판이 `Stopped` 상태.
-- **해결:** Docker Desktop 실행 → `docker info`에 `Server:` 섹션이 출력되는 것 확인. (OrbStack 환경이라면 OrbStack 앱 실행)
+- **확인:** `docker --version`은 클라이언트 버전만 출력(데몬 불필요). `wsl -l -v`에서 `docker-desktop` 배포판이 `Stopped` 상태. 관리자 PowerShell에서 실행해도 `Server:` 아래가 같은 오류 → 권한 문제가 아니라 데몬 미기동 문제.
+
+  ![docker info 데몬 연결 실패](docs/screenshots/03-docker-daemon-fail.png)
+
+- **해결:** Docker 관련 프로세스를 정리(`Get-Process "*docker*" | Stop-Process -Force`, `wsl --shutdown`)한 뒤 Docker Desktop을 다시 실행 → `docker version`에 `Server: Docker Desktop 4.97.0` / `Engine 29.9.2`가 출력되고, `docker info`에도 `Server:` 섹션이 정상 출력됨. (OrbStack 환경이라면 OrbStack 앱 실행)
+
+  ![Docker Desktop 재시작 후 docker version 정상](docs/screenshots/04-docker-version-ok.png)
+
 - **배운 점:** Docker는 클라이언트-서버 구조. 버전 확인만으로는 "동작 중"을 증명할 수 없다.
 
 ### 트러블슈팅 2: Git Bash에서 chmod가 적용되지 않음
@@ -497,6 +519,37 @@ $ docker compose down
 - **원인 가설:** Git Bash(MSYS2)는 Windows 프로그램(docker.exe)에 넘기는 인자 중 `/`로 시작하는 것을 자동으로 Windows 경로로 변환한다.
 - **확인:** 에러 메시지의 경로 앞에 Git 설치 경로(`C:/Program Files/Git`)가 붙어 있음. `/tmp/x.txt`도 `C:/Users/ADMIN/AppData/Local/Temp/x.txt`로 변환됨.
 - **해결:** `export MSYS_NO_PATHCONV=1`로 자동 변환을 끄고 재실행 → 정상 출력. (대안: 경로 앞에 `/`를 하나 더 `//usr/...`, 또는 PowerShell/WSL 사용)
+
+### 트러블슈팅 4: WSL Ubuntu 설치 명령 실패
+- **문제:** 권한 실습용 리눅스 환경(WSL Ubuntu)을 설치하는 과정에서 명령이 연달아 실패.
+  ```
+  PS> wsl --install -d
+  명령줄 인수 -d에는 값이 필요합니다.  오류 코드: Wsl/E_INVALIDARG
+  PS> wsl -- install -d Ubuntu
+  install: can't create directory 'Ubuntu': Permission denied
+  PS> dism.exe /online /enable-feature /featurename:VirtualM...
+  오류: 740  DISM을 실행하려면 관리자 권한이 필요합니다.
+  ```
+  ![WSL 설치 오류들](docs/screenshots/05-wsl-install-errors.png)
+- **원인 가설:** (1) `-d` 뒤에 배포판 이름을 빠뜨림. (2) `wsl --` 처럼 띄어 쓰면 `--` 뒤가 **WSL 안의 리눅스 명령**으로 넘어가서, 리눅스의 `install` 명령이 실행됨. (3) Windows 기능을 켜는 DISM은 관리자 권한이 필요함.
+- **확인:** 오류 메시지가 각각 "인수 값 필요", 리눅스 `install` 명령의 오류, "관리자 권한 필요(740)"로 가설과 일치.
+- **해결:** **관리자 PowerShell**에서 `wsl -l -v`로 현재 배포판(`docker-desktop`만 있음)을 확인한 뒤, 정확한 문법 `wsl --install -d Ubuntu`로 설치 → 사용자 계정 생성 후 `/home/sunny`, Ubuntu 26.04.1 LTS, `/bin/bash` 확인.
+
+  ![wsl --install -d Ubuntu 설치](docs/screenshots/06-wsl-install-ubuntu.png)
+  ![WSL Ubuntu 설치 완료 확인](docs/screenshots/07-wsl-ubuntu-ready.png)
+
+- **배운 점:** 같은 `--`라도 옵션의 일부(`--install`)인지 "여기부터는 다른 프로그램의 인자"라는 구분자(`--`)인지에 따라 의미가 완전히 달라진다. 시스템 기능 변경은 관리자 권한이 필요하다.
+
+### 트러블슈팅 5: WSL Ubuntu 안에서 `docker` 명령을 찾을 수 없음
+- **문제:** WSL Ubuntu에서 `docker --version` 실행 시
+  ```
+  The command 'docker' could not be found in this WSL 2 distro.
+  We recommend to activate the WSL integration in Docker Desktop settings.
+  ```
+  ![WSL에서 docker not found](docs/screenshots/08-wsl-docker-not-found.png)
+- **원인 가설:** Docker Desktop은 기본적으로 자기 전용 배포판(`docker-desktop`)에서 엔진을 돌리고, 다른 WSL 배포판에는 **연동(WSL Integration)을 켜야** docker CLI가 연결된다.
+- **확인:** 오류 메시지가 WSL integration 활성화를 직접 안내함. 같은 시점에 Windows(PowerShell/Git Bash)에서는 `docker` 명령이 정상 동작 → 엔진 문제가 아니라 배포판 연동 문제.
+- **해결/대안:** 이 미션에서는 **Windows 쪽 터미널(Git Bash)에서 Docker를 사용**하고, WSL Ubuntu는 리눅스 권한 실습에만 사용했습니다. WSL 안에서도 쓰려면 Docker Desktop → Settings → Resources → **WSL Integration**에서 `Ubuntu`를 켜고 Apply & Restart 하면 됩니다.
 
 ### (참고) attach 파이프 출력이 보이지 않음
 - `echo "..." | docker attach`에서 `from-attach` 출력이 터미널에 안 보였지만, `docker logs e1-attach`로 확인하니 명령은 실제로 실행됨 → Windows 파이프 + TTY 없는 attach에서 출력 스트림만 돌아오지 않은 것. 대화형(`docker run -it`, `docker attach`)에서는 정상 표시.
