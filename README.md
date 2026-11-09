@@ -347,7 +347,7 @@ $ docker logs e1-web-8080 | tail -1
 
 **브라우저 접속 화면 (주소창 포함)**
 
-![localhost:8080 브라우저 접속](docs/screenshots/browser-8080.png)
+![localhost:8080 브라우저 접속](docs/screenshots/browser-8080.jpg)
 
 **포트 매핑이 필요한 이유:** 컨테이너는 격리된 자체 네트워크(브리지, 172.17.x.x)를 가지므로 컨테이너의 80번 포트는 호스트에서 바로 보이지 않습니다. `-p <호스트포트>:<컨테이너포트>`는 호스트의 포트로 들어온 요청을 해당 컨테이너 포트로 전달하는 통로를 엽니다. 덕분에 **같은 이미지(내부 80)를 호스트 8080/8081처럼 서로 다른 포트로 여러 개** 띄울 수 있습니다.
 
@@ -430,8 +430,8 @@ main
 
 **VS Code GitHub 로그인 / 저장소 연동 증거**
 
-![VS Code GitHub 계정 로그인](docs/screenshots/vscode-github-login.png)
-![VS Code 소스 제어 - 원격 저장소 연동](docs/screenshots/vscode-github-remote.png)
+![VS Code GitHub 계정 로그인](docs/screenshots/vscode-github-login.jpg)
+![VS Code 터미널 - git remote -v 원격 저장소 연동](docs/screenshots/vscode-github-remote.png)
 
 **Git vs GitHub**
 - **Git**: 내 PC에서 동작하는 **로컬 버전 관리 도구**. 커밋/브랜치/히스토리를 인터넷 없이 관리.
